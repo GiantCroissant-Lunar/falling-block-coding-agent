@@ -1,0 +1,54 @@
+name: PR Guard
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  enforce-size:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate PR size
+        id: eval
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner; const repo = context.repo.repo;
+            // Fetch files changed count
+            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr.number, per_page: 100 });
+            const fileCount = files.length;
+            // Simple heuristic: limit batches to 25 files and 800 additions
+            const additions = pr.additions;
+            const tooManyFiles = fileCount > 25;
+            const tooManyAdditions = additions > 800;
+            core.setOutput('too_large', (tooManyFiles || tooManyAdditions).toString());
+            core.setOutput('file_count', String(fileCount));
+            core.setOutput('additions', String(additions));
+      - name: Label and draft if too large
+        if: steps.eval.outputs.too_large == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request; const owner = context.repo.owner; const repo = context.repo.repo;
+            // Label
+            await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: ['needs-split'] }).catch(()=>{});
+            // Comment guidance for Copilot
+            const guidance = [
+              `This PR is large (files: ${process.env.FILE_COUNT}, additions: ${process.env.ADDITIONS}). Please split into smaller batches (3–5 files, <300 LOC) per AGENTS.md.`,
+              `Suggested split:`,
+              `- Batch 1: Toolchain scaffolding (global.json, Directory.Packages.props)`,
+              `- Batch 2: Initial solution + test project`,
+              `- Batch 3: Minimal Terminal.GUI app skeleton + smoke tests`,
+              `Pause after each batch with a checkpoint.`
+            ].join('\n');
+            await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body: guidance }).catch(()=>{});
+            // Convert to draft to pause merging
+            await github.rest.pulls.update({ owner, repo, pull_number: pr.number, draft: true }).catch(()=>{});
+        env:
+          FILE_COUNT: ${{ steps.eval.outputs.file_count }}
+          ADDITIONS: ${{ steps.eval.outputs.additions }}
