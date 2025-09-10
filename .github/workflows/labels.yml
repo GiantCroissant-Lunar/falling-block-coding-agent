@@ -28,7 +28,8 @@ jobs:
               { name: 'auto-merge', color: '0e8a16', description: 'Auto-merge when checks pass' },
               { name: 'needs-info', color: 'd93f0b', description: 'Awaiting info from author' },
               { name: 'stale', color: 'eeeeee', description: 'Inactive and will close soon' },
-              { name: 'keep-open', color: '6a737d', description: 'Prevent stale bot from closing' }
+              { name: 'keep-open', color: '6a737d', description: 'Prevent stale bot from closing' },
+              { name: 'needs-split', color: 'c2e0c6', description: 'PR too large; should be split into smaller batches' }
             );
             for (const l of labels) {
               try {
