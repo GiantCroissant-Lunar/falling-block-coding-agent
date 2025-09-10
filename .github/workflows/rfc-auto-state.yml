@@ -11,9 +11,14 @@ jobs:
     permissions:
       contents: write
       pull-requests: read
-  issues: write
+      issues: write
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+          cache: 'pip'
       - name: Extract RFC IDs
         id: ids
         run: |
@@ -27,7 +32,8 @@ jobs:
       - name: Mark RFCs Done
         if: steps.ids.outputs.ids != ''
         run: |
-          pipx install ruamel.yaml
+          python -m pip install --upgrade pip
+          python -m pip install ruamel.yaml ruamel.yaml.clib
           python - << 'PY'
           from pathlib import Path
           import re
@@ -46,16 +52,21 @@ jobs:
             rfcs = list(Path('docs/RFC').glob(f'{rid}-*.md'))
             for f in rfcs:
               t = f.read_text(encoding='utf-8')
-              t = re.sub(r'(state:\s*)(Draft|Approved|Implementing|Review|Rejected)', r'\1Done', t, count=1)
-              f.write_text(t, encoding='utf-8')
+              t2 = re.sub(r'(state:\s*)(Draft|Approved|Implementing|Review|Rejected)', r'\1Done', t, count=1)
+              if t2 != t:
+                f.write_text(t2, encoding='utf-8')
           if changed:
-            idx.write_text(yaml.dump(data), encoding='utf-8')
+            # Preserve YAML formatting by writing via ruamel.yaml
+            from io import StringIO
+            buf = StringIO()
+            yaml.dump(data, buf)
+            idx.write_text(buf.getvalue(), encoding='utf-8')
           PY
       - name: Commit changes
         if: steps.ids.outputs.ids != ''
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add docs/RFC/index.yaml docs/RFC/*.md
+          git add docs/RFC/index.yaml docs/RFC/*.md || true
           git commit -m "chore(rfc): mark RFC(s) ${{ steps.ids.outputs.ids }} as Done" || echo "No changes"
-          git push
+          git push || true
