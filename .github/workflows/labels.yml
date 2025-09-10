@@ -30,6 +30,7 @@ jobs:
               { name: 'stale', color: 'eeeeee', description: 'Inactive and will close soon' },
               { name: 'keep-open', color: '6a737d', description: 'Prevent stale bot from closing' },
               { name: 'needs-split', color: 'c2e0c6', description: 'PR too large; should be split into smaller batches' },
+              { name: 'tests-exempt', color: 'bdbdbd', description: 'Override: PR with code changes is exempt from test updates (must include justification)' },
               { name: 'superseded', color: 'ededed', description: 'Superseded by another PR' }
             );
             for (const l of labels) {

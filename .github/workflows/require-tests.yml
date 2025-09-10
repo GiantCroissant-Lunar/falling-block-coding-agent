@@ -1,0 +1,53 @@
+name: Require tests for code changes
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  check-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify tests present for code changes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const owner = context.repo.owner; const repo = context.repo.repo;
+
+            const overrideLabel = 'tests-exempt';
+
+            // Current labels on the PR
+            const labels = (pr.labels || []).map(l => l.name);
+            const hasOverride = labels.includes(overrideLabel);
+
+            // Changed files in PR
+            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr.number, per_page: 100 });
+
+            const isCodeFile = (p) => {
+              if (!p.startsWith('dotnet/')) return false;
+              if (p.startsWith('dotnet/tests/')) return false; // tests are excluded from "code" bucket for this check
+              return true;
+            };
+            const isTestFile = (p) => p.startsWith('dotnet/tests/');
+
+            const hasCodeChanges = files.some(f => isCodeFile(f.filename));
+            const hasTestChanges = files.some(f => isTestFile(f.filename));
+
+            core.info(`hasCodeChanges=${hasCodeChanges} hasTestChanges=${hasTestChanges} hasOverride=${hasOverride}`);
+
+            if (hasCodeChanges && !hasTestChanges && !hasOverride) {
+              const body = [
+                'This PR changes code under dotnet/** but has no changes under dotnet/tests/**.',
+                'Please add or update tests to cover the changes.',
+                `If this PR is legitimately test-exempt (e.g., refactor, infra, or non-behavioral change), add the '${overrideLabel}' label with a short justification in the PR description.`
+              ].join('\n');
+              await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body }).catch(()=>{});
+              core.setFailed('Code changes detected without corresponding test changes. Add tests or label as tests-exempt with justification.');
+            } else {
+              core.info('Tests requirement satisfied or override present.');
+            }
