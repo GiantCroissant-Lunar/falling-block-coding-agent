@@ -84,6 +84,16 @@ Notes
 - You don’t "create" long-lived agents; each Issue/PR comment invokes an agent run scoped to that thread. Concurrency comes from multiple active Issues/PRs.
 - Clear DoD, allowed files, and acceptance criteria significantly improve outcomes.
 
+## Policy: No manual merges by coordinators
+
+- Implementation PRs must be merged by the Coding Agent (or the author) through normal readiness gates. Coordinators must not merge these PRs manually unless the repo owner explicitly requests an emergency hotfix.
+- If a coordinator accidentally merges an agent PR, revert immediately and record the incident below.
+- Rationale: Preserve agent autonomy and validate that workflows (nudges, rebase handling, CI gates) are sufficient for automated progress.
+
+### Incident log
+
+- 2025-09-10: Accidental manual merge of PR #27 ([RFC-0003] Batch 1: pin .NET 9 and enable CPVM). Action: reverted via commit a29959c on main. Follow-up: rely on the agent to advance PR #18 after rebase.
+
 ## Copilot Coding Agent (Autonomous commits with safety)
 
 Purpose

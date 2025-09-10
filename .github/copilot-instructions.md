@@ -72,3 +72,24 @@ How to respond to triggers
 Notes
 - No external API keys are required. Use first-party GitHub Copilot Coding Agent capabilities.
 - Keep public repo hygiene: labels in sync, minimal secure workflows, and clear PR descriptions (use closing keywords like `closes #<issue>`).
+
+## If your PR is behind or has conflicts (must do before Ready)
+
+When GitHub shows your PR as “behind” or with merge conflicts, resolve it before marking Ready:
+
+1) Rebase on main
+	- Fetch latest: `git fetch origin`
+	- Rebase: `git rebase origin/main`
+	- Resolve conflicts (edit files), then `git add -A` and `git rebase --continue`
+2) Validate locally
+	- `dotnet restore`
+	- `dotnet build -warnaserror`
+	- `dotnet test`
+3) Push with a tokenized remote (required for bots)
+	- Set remote (note the `.git` suffix):
+	  `git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/GiantCroissant-Lunar/falling-block-coding-agent.git"`
+	- Push: `git push --force-with-lease`
+4) If API is preferred, you may attempt `update-branch` via GitHub API; if it returns conflicts, fall back to the rebase steps above.
+5) Once CI is green, mark the PR Ready for review.
+
+If any step is blocked (auth, conflicts), post a concise comment describing the exact failing command and propose the next small step.
