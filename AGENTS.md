@@ -84,6 +84,34 @@ Notes
 - You don’t "create" long-lived agents; each Issue/PR comment invokes an agent run scoped to that thread. Concurrency comes from multiple active Issues/PRs.
 - Clear DoD, allowed files, and acceptance criteria significantly improve outcomes.
 
+## Copilot Coding Agent (Autonomous commits with safety)
+
+Purpose
+- Use GitHub Copilot Coding Agent to evolve the repo with small, test-verified changes based on this AGENTS.md.
+
+Enablement
+- In repository Settings → Copilot → Coding Agent, enable for the repo (or at org level). Keep this `AGENTS.md` on the default branch.
+- Optionally add custom instructions in this file (below) to steer style, scope limits, and quality gates.
+
+How to trigger
+- From an RFC Issue: comment with a clear ask, e.g. “Copilot, implement RFC 0003 per AGENTS.md. Create a branch and draft PR. Stop when build and tests are green.”
+- From a PR: comment with changes, e.g. “Copilot, address review feedback A/B/C within RFC scope and re-run tests.”
+- For planning: open an Issue asking “Copilot, plan next RFCs from docs/RFC/index.yaml and open Implement RFC issues.”
+
+Safety and limits (the agent respects these when stated)
+- Keep PRs small (<= 5 files or as specified in the task brief), favor tests-first, and ensure build/tests pass.
+- Stick to CPVM pins, avoid unapproved dependencies, and update `docs/RFC/index.yaml` states when appropriate.
+- Use checkpoints every 3–5 edits with a short summary comment.
+
+Scope
+- The agent makes incremental, low-risk changes aligned to an RFC’s DoD. For larger efforts, split into multiple small PRs.
+
+Custom instructions for Copilot Coding Agent
+- Prefer small, dependency-aware RFCs and parallelizable tasks.
+- Enforce CPVM versions from `dotnet/Directory.Packages.props`.
+- Keep changes within the RFC’s declared scope and DoD.
+- Quality gates: .NET restore/build/test must be green locally and in CI before marking Done.
+
 ## Non-RFC Issues and Hygiene
 
 - Non-RFC Issues (bugs, chores) are allowed. Prefer linking to an RFC if scope touches design; otherwise label as `needs-info` until actionable.
