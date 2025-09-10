@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FallingBlock.Core", "src/FallingBlock.Core/FallingBlock.Core.csproj", "{1D6E0C28-4B32-4A99-8D41-8F3F3F07F61C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FallingBlock.Game", "src/FallingBlock.Game/FallingBlock.Game.csproj", "{B306D6A8-6B16-44A5-9F10-6A0B8AC56F7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FallingBlock.Tests", "tests/FallingBlock.Tests/FallingBlock.Tests.csproj", "{7B5B7A8C-2B27-4E73-BAB9-85F1E19974E0}"
+EndProject
+Global
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|Any CPU = Debug|Any CPU
+        Release|Any CPU = Release|Any CPU
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {1D6E0C28-4B32-4A99-8D41-8F3F3F07F61C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {1D6E0C28-4B32-4A99-8D41-8F3F3F07F61C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {1D6E0C28-4B32-4A99-8D41-8F3F3F07F61C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {1D6E0C28-4B32-4A99-8D41-8F3F3F07F61C}.Release|Any CPU.Build.0 = Release|Any CPU
+        {B306D6A8-6B16-44A5-9F10-6A0B8AC56F7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {B306D6A8-6B16-44A5-9F10-6A0B8AC56F7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {B306D6A8-6B16-44A5-9F10-6A0B8AC56F7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {B306D6A8-6B16-44A5-9F10-6A0B8AC56F7B}.Release|Any CPU.Build.0 = Release|Any CPU
+        {7B5B7A8C-2B27-4E73-BAB9-85F1E19974E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {7B5B7A8C-2B27-4E73-BAB9-85F1E19974E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {7B5B7A8C-2B27-4E73-BAB9-85F1E19974E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {7B5B7A8C-2B27-4E73-BAB9-85F1E19974E0}.Release|Any CPU.Build.0 = Release|Any CPU
+    EndGlobalSection
+    GlobalSection(SolutionProperties) = preSolution
+        HideSolutionNode = FALSE
+    EndGlobalSection
+EndGlobal

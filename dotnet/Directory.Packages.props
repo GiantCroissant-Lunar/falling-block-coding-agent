@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <!-- Enable Central Package Version Management for all child projects -->
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <!--
+    Define centrally managed package versions here. Projects should reference packages
+    without Version attributes; MSBuild will use the versions defined below.
+
+    Keep versions pinned for deterministic builds. Add/adjust as RFCs progress.
+  -->
+  <ItemGroup>
+    <!-- Test stack (added when tests are introduced) -->
+    <!--
+    <PackageVersion Include="xunit" Version="3.0.0" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
+    <PackageVersion Include="FluentAssertions" Version="6.12.0" />
+    <PackageVersion Include="NSubstitute" Version="5.1.0" />
+    <PackageVersion Include="Verify.Xunit" Version="26.1.0" />
+    -->
+
+    <!-- App stack (added when features require them) -->
+    <!--
+    <PackageVersion Include="Terminal.Gui" Version="2.0.0" />
+    <PackageVersion Include="ReactiveUI" Version="19.5.1" />
+    <PackageVersion Include="System.Reactive" Version="6.0.0" />
+    -->
+  </ItemGroup>
+</Project>
