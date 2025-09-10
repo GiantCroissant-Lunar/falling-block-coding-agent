@@ -1,7 +1,7 @@
 ---
 id: 0001
 title: Vision & scope
-state: Draft
+state: Approved
 group: bootstrap
 requires: []
 blocks: [0002,0004,0011]

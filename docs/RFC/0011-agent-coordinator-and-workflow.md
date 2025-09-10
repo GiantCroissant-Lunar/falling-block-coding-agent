@@ -1,7 +1,7 @@
 ---
 id: 0011
 title: Coding agent coordinator & workflow
-state: Draft
+state: Approved
 group: bootstrap
 requires: [0001,0002]
 blocks: [0003,0004]

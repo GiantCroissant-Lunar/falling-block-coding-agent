@@ -1,7 +1,7 @@
 ---
 id: 0002
 title: Repo structure & public standards
-state: Draft
+state: Approved
 group: bootstrap
 requires: [0001]
 blocks: [0003,0010]
