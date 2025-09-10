@@ -1,7 +1,7 @@
 ---
 id: 0010
 title: CI/CD & quality gates
-state: Draft
+state: Approved
 group: bootstrap
 requires: [0002,0003,0008]
 blocks: []

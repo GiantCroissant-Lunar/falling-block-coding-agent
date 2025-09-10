@@ -16,13 +16,13 @@ groups:
 rfcs:
   "0001": { title: Vision & scope, state: Approved, requires: [], blocks: ["0002","0004","0011"] }
   "0002": { title: Repo structure & public standards, state: Approved, requires: ["0001"], blocks: ["0003","0010"] }
-  "0003": { title: Toolchain & CPVM, state: Draft, requires: ["0002"], blocks: ["0004","0008","0010"] }
+  "0003": { title: Toolchain & CPVM, state: Approved, requires: ["0002"], blocks: ["0004","0008","0010"] }
   "0004": { title: Architecture (MVVM + Reactive) & solution layout, state: Draft, requires: ["0001","0003"], blocks: ["0005","0006","0007","0008"] }
   "0005": { title: Game design rules (SRS, scoring, levels), state: Draft, requires: ["0004"], blocks: ["0007","0008"] }
   "0006": { title: UI/Rendering with Terminal.GUI v2, state: Draft, requires: ["0004"], blocks: ["0012"] }
   "0007": { title: Input & timing model, state: Draft, requires: ["0004","0005"], blocks: ["0012"] }
   "0008": { title: Testing strategy, state: Draft, requires: ["0003","0004","0005"], blocks: ["0010"] }
   "0009": { title: Observability & diagnostics, state: Draft, requires: ["0004"], blocks: [] }
-  "0010": { title: CI/CD & quality gates, state: Draft, requires: ["0002","0003","0008"], blocks: [] }
+  "0010": { title: CI/CD & quality gates, state: Approved, requires: ["0002","0003","0008"], blocks: [] }
   "0011": { title: Coding agent coordinator & workflow, state: Approved, requires: ["0001","0002"], blocks: ["0003","0004"] }
   "0012": { title: Iteration plan & milestones, state: Draft, requires: ["0001","0004","0006","0007"], blocks: [] }
