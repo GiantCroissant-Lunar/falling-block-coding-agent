@@ -1,0 +1,112 @@
+name: Copilot Agent Ping Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to test agent ping (optional)'
+        required: false
+        type: string
+  pull_request:
+    types: [opened, reopened]
+    branches: [ main ]
+
+jobs:
+  ping-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Get PR number
+        id: pr
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "number=${{ github.event.number }}" >> $GITHUB_OUTPUT
+          elif [ -n "${{ github.event.inputs.pr_number }}" ]; then
+            echo "number=${{ github.event.inputs.pr_number }}" >> $GITHUB_OUTPUT
+          else
+            echo "No PR number available, skipping ping test"
+            exit 0
+          fi
+      
+      - name: Create ping comment
+        if: steps.pr.outputs.number != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            // Create a ping comment for the Copilot agent
+            const comment = await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: `🤖 **Copilot Agent Ping Test**\n\nThis is an automated test to verify Copilot agent responsiveness.\n\nCopilot, please respond with a simple acknowledgment that you can see this ping. This is a test of the agent workflow described in AGENTS.md.\n\nExpected response: A brief comment confirming agent availability.\n\n---\n*This test was triggered by the Copilot Agent Ping Test workflow.*`
+            });
+            
+            console.log(`Created ping comment: ${comment.data.html_url}`);
+      
+      - name: Wait for agent response
+        if: steps.pr.outputs.number != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ steps.pr.outputs.number }};
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            // Wait up to 5 minutes for a response
+            const maxWaitMinutes = 5;
+            const startTime = Date.now();
+            
+            console.log(`Waiting up to ${maxWaitMinutes} minutes for Copilot agent response...`);
+            
+            while ((Date.now() - startTime) < maxWaitMinutes * 60 * 1000) {
+              const comments = await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: prNumber
+              });
+              
+              // Look for recent bot/agent responses after our ping
+              const recentComments = comments.data.filter(comment => 
+                new Date(comment.created_at) > new Date(startTime) &&
+                (comment.user.type === 'Bot' || comment.body.toLowerCase().includes('copilot') || comment.body.toLowerCase().includes('agent'))
+              );
+              
+              if (recentComments.length > 0) {
+                console.log(`✅ Agent responded! Found ${recentComments.length} potential agent response(s).`);
+                
+                // Create success comment
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: prNumber,
+                  body: `✅ **Copilot Agent Ping Test: PASSED**\n\nThe agent responded successfully! This confirms the Copilot agent workflow is functioning.\n\nResponse time: ~${Math.round((Date.now() - startTime) / 1000)} seconds`
+                });
+                
+                process.exit(0);
+              }
+              
+              // Wait 30 seconds before checking again
+              await new Promise(resolve => setTimeout(resolve, 30000));
+            }
+            
+            // Timeout - create failure comment
+            console.log(`❌ No agent response detected within ${maxWaitMinutes} minutes.`);
+            
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: `❌ **Copilot Agent Ping Test: TIMEOUT**\n\nNo agent response was detected within ${maxWaitMinutes} minutes. This may indicate:\n\n1. The Copilot agent is not enabled for this repository\n2. The agent is experiencing delays or issues\n3. The agent may have responded but wasn't detected by this test\n\nPlease check:\n- Repository Settings → Copilot → Coding Agent is enabled\n- The agent has appropriate permissions\n- AGENTS.md is present on the default branch\n\nManual test: Try commenting "Copilot, please respond with a simple hello" on this PR.`
+            });
+            
+            process.exit(1);
