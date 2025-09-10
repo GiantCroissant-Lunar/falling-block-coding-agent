@@ -1,0 +1,70 @@
+name: Cleanup Runs
+
+on:
+  schedule:
+    # Every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old workflow runs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+            const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+
+            const maxDeletesPerRun = 500; // safety cap
+
+            async function listCompletedRuns() {
+              return await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+                owner,
+                repo,
+                per_page: 100,
+                status: 'completed'
+              });
+            }
+
+            async function deleteRun(runId) {
+              try {
+                await github.rest.actions.deleteWorkflowRun({ owner, repo, run_id: runId });
+                core.info(`Deleted run ${runId}`);
+                return true;
+              } catch (err) {
+                core.warning(`Failed to delete run ${runId}: ${err.message}`);
+                return false;
+              }
+            }
+
+            const runs = await listCompletedRuns();
+            const failedOld = runs.filter(r => r.conclusion === 'failure' && (now - Date.parse(r.created_at)) > TWO_HOURS_MS);
+            const successOld = runs.filter(r => r.conclusion === 'success' && (now - Date.parse(r.created_at)) > TWO_DAYS_MS);
+
+            core.info(`Found ${failedOld.length} failed runs older than 2h; ${successOld.length} successful runs older than 2d.`);
+
+            let deleted = 0;
+            for (const r of failedOld) {
+              if (deleted >= maxDeletesPerRun) break;
+              // Skip if somehow not completed
+              if (r.status !== 'completed') continue;
+              const ok = await deleteRun(r.id);
+              if (ok) deleted++;
+            }
+            for (const r of successOld) {
+              if (deleted >= maxDeletesPerRun) break;
+              if (r.status !== 'completed') continue;
+              const ok = await deleteRun(r.id);
+              if (ok) deleted++;
+            }
+            core.info(`Deleted ${deleted} runs in total.`);
