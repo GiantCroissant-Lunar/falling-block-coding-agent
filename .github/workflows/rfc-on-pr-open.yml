@@ -48,7 +48,8 @@ jobs:
             const ids = Array.from(new Set(matches)).join(',');
             core.setOutput('ids', ids);
       - name: Mark Implementing and label linked issue
-        if: steps.ids.outputs.ids != ''
+        # Do not modify docs or push when triggered from pull_request; only on manual dispatch
+        if: steps.ids.outputs.ids != '' && github.event_name != 'pull_request'
         run: |
           python -m pip install --upgrade pip
           python -m pip install ruamel.yaml ruamel.yaml.clib
