@@ -21,7 +21,7 @@ jobs:
             const owner = context.repo.owner, repo = context.repo.repo;
             const prs = await github.paginate(github.rest.pulls.list, { owner, repo, state: 'open', per_page: 100 });
             const now = new Date();
-            const IDLE_MINS = 90; // nudge if idle > 90 minutes
+            const IDLE_MINS = 5; // TEMP: nudge if idle > 5 minutes (testing)
             for (const pr of prs) {
               const text = (pr.title || '') + '\n' + (pr.body || '');
               const hasRfc = /(RFC[- ]\d{4})/i.test(text);
