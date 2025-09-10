@@ -36,6 +36,7 @@ jobs:
           python - << 'PY'
           from pathlib import Path
           from ruamel.yaml import YAML
+          from io import StringIO
           import re
           ids = [s for s in '${{ steps.ids.outputs.ids }}'.split(',') if s]
           yaml = YAML()
@@ -54,7 +55,9 @@ jobs:
               if txt2 != txt:
                 f.write_text(txt2, encoding='utf-8')
           if changed:
-            idx.write_text(yaml.dump(data), encoding='utf-8')
+            buf = StringIO()
+            yaml.dump(data, buf)
+            idx.write_text(buf.getvalue(), encoding='utf-8')
           PY
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
