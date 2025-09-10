@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FallingBlock.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+40018cbc105f417797ffc55ac8c10a77b521edd6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+51f60892982e4ef63b215c69e07f177aa262339d")]
 [assembly: System.Reflection.AssemblyProductAttribute("FallingBlock.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FallingBlock.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,0 +1,172 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\tests\\FallingBlock.Tests\\FallingBlock.Tests.csproj": {}
+  },
+  "projects": {
+    "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\src\\FallingBlock.Core\\FallingBlock.Core.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\src\\FallingBlock.Core\\FallingBlock.Core.csproj",
+        "projectName": "FallingBlock.Core",
+        "projectPath": "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\src\\FallingBlock.Core\\FallingBlock.Core.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\src\\FallingBlock.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "centralPackageVersionsManagementEnabled": true,
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\NuGet.Config",
+          "C:\\lunar-snake\\personal-work\\NuGet.Config",
+          "C:\\lunar-snake\\NuGet.Config",
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "centralPackageVersions": {
+            "FluentAssertions": "6.12.0",
+            "Microsoft.NET.Test.Sdk": "17.11.0",
+            "xunit": "2.9.3",
+            "xunit.runner.visualstudio": "2.8.2"
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.109/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\tests\\FallingBlock.Tests\\FallingBlock.Tests.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\tests\\FallingBlock.Tests\\FallingBlock.Tests.csproj",
+        "projectName": "FallingBlock.Tests",
+        "projectPath": "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\tests\\FallingBlock.Tests\\FallingBlock.Tests.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\tests\\FallingBlock.Tests\\obj\\",
+        "projectStyle": "PackageReference",
+        "centralPackageVersionsManagementEnabled": true,
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\NuGet.Config",
+          "C:\\lunar-snake\\personal-work\\NuGet.Config",
+          "C:\\lunar-snake\\NuGet.Config",
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\src\\FallingBlock.Core\\FallingBlock.Core.csproj": {
+                "projectPath": "C:\\lunar-snake\\personal-work\\yokan-projects\\falling-block-coding-agent\\dotnet\\src\\FallingBlock.Core\\FallingBlock.Core.csproj"
+              }
+            }
+          }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "FluentAssertions": {
+              "target": "Package",
+              "version": "[6.12.0, )",
+              "versionCentrallyManaged": true
+            },
+            "Microsoft.NET.Test.Sdk": {
+              "target": "Package",
+              "version": "[17.11.0, )",
+              "versionCentrallyManaged": true
+            },
+            "xunit": {
+              "target": "Package",
+              "version": "[2.9.3, )",
+              "versionCentrallyManaged": true
+            },
+            "xunit.runner.visualstudio": {
+              "target": "Package",
+              "version": "[2.8.2, )",
+              "versionCentrallyManaged": true
+            }
+          },
+          "centralPackageVersions": {
+            "FluentAssertions": "6.12.0",
+            "Microsoft.NET.Test.Sdk": "17.11.0",
+            "xunit": "2.9.3",
+            "xunit.runner.visualstudio": "2.8.2"
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.109/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}
