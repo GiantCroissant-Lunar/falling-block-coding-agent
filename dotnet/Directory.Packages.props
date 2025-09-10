@@ -12,17 +12,13 @@
     Keep versions pinned for deterministic builds. Add/adjust as RFCs progress.
   -->
   <ItemGroup>
-    <!-- Test stack (added when tests are introduced) -->
-    <!--
-    <PackageVersion Include="xunit" Version="3.0.0" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
-    <PackageVersion Include="FluentAssertions" Version="6.12.0" />
-    <PackageVersion Include="NSubstitute" Version="5.1.0" />
-    <PackageVersion Include="Verify.Xunit" Version="26.1.0" />
-    -->
+  <!-- Test stack -->
+  <PackageVersion Include="xunit" Version="3.0.0" />
+  <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.0" />
+  <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
+  <PackageVersion Include="FluentAssertions" Version="6.12.0" />
 
-    <!-- App stack (added when features require them) -->
+  <!-- App stack (add when features require them) -->
     <!--
     <PackageVersion Include="Terminal.Gui" Version="2.0.0" />
     <PackageVersion Include="ReactiveUI" Version="19.5.1" />
