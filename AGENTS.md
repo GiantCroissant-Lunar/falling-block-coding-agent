@@ -111,9 +111,6 @@ Custom instructions for Copilot Coding Agent
 - Enforce CPVM versions from `dotnet/Directory.Packages.props`.
 - Keep changes within the RFC’s declared scope and DoD.
 - Quality gates: .NET restore/build/test must be green locally and in CI before marking Done.
- - Pushing from workflows: before pushing, ensure the remote uses a tokenized HTTPS URL ending with `.git`:
-	 - `https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git`
-	 - Stay on the same PR branch; avoid creating split branches unless requested.
 
 ## Non-RFC Issues and Hygiene
 
