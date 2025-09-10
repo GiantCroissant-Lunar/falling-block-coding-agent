@@ -82,7 +82,13 @@ jobs:
                   'git push --force-with-lease');
                 try { await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: ['needs-rebase','in-progress'] }); } catch {}
               } else {
-                try { await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: ['in-progress'] }); } catch {}
+                try {
+                  await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: ['in-progress'] });
+                } catch {}
+                // Clean up stale conflict label if present
+                try {
+                  await github.rest.issues.removeLabel({ owner, repo, issue_number: pr.number, name: 'needs-rebase' });
+                } catch {}
               }
               await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body: lines.join('\n') });
             }
