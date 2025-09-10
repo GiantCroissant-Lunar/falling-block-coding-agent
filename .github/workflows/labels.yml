@@ -1,0 +1,40 @@
+name: Sync labels
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [ main ]
+    paths:
+      - .github/labels.yml
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ensure labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = [
+              { name: 'coordinator', color: '0366d6', description: 'Coordinator-related tasks' },
+              { name: 'agent:task', color: '0e8a16', description: 'Agent implementation task' },
+              { name: 'rfc', color: '5319e7', description: 'RFC-related issue/PR' },
+              { name: 'ready', color: '1d76db', description: 'Ready to implement' },
+              { name: 'blocked', color: 'b60205', description: 'Blocked by dependency or CI' },
+              { name: 'in-progress', color: 'fbca04', description: 'Actively being implemented' },
+              { name: 'auto-update', color: '0052cc', description: 'Allow auto-update from main' }
+            ];
+            labels.push(
+              { name: 'auto-merge', color: '0e8a16', description: 'Auto-merge when checks pass' },
+              { name: 'needs-info', color: 'd93f0b', description: 'Awaiting info from author' },
+              { name: 'stale', color: 'eeeeee', description: 'Inactive and will close soon' },
+              { name: 'keep-open', color: '6a737d', description: 'Prevent stale bot from closing' }
+            );
+            for (const l of labels) {
+              try {
+                await github.rest.issues.getLabel({ owner: context.repo.owner, repo: context.repo.repo, name: l.name });
+                await github.rest.issues.updateLabel({ owner: context.repo.owner, repo: context.repo.repo, name: l.name, color: l.color, description: l.description });
+              } catch (e) {
+                await github.rest.issues.createLabel({ owner: context.repo.owner, repo: context.repo.repo, name: l.name, color: l.color, description: l.description });
+              }
+            }

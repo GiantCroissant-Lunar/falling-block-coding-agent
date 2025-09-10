@@ -1,0 +1,36 @@
+name: Auto Merge
+
+on:
+  check_suite:
+    types: [completed]
+  workflow_run:
+    workflows: [".NET", "Plan RFCs", "RFC Auto State", "RFC On PR Open", "RFC Monitor"]
+    types: [completed]
+  workflow_dispatch: {}
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner; const repo = context.repo.repo;
+            // Find open PRs with label 'auto-merge'
+            const prs = await github.paginate(github.rest.pulls.list, { owner, repo, state: 'open' });
+            for (const pr of prs) {
+              const labeled = pr.labels?.some(l => l.name === 'auto-merge');
+              if (!labeled) continue;
+              // Ensure required checks succeeded
+              const { data: combined } = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: pr.head.sha });
+              if (combined.state !== 'success') continue;
+              // Merge using squash
+              try {
+                await github.rest.pulls.merge({ owner, repo, pull_number: pr.number, merge_method: 'squash' });
+              } catch (e) {
+                core.info(`Merge failed for PR #${pr.number}: ${e.message}`);
+              }
+            }

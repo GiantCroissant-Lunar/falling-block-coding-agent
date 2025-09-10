@@ -1,0 +1,72 @@
+name: RFC On PR Open
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract RFC IDs
+        id: ids
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          BODY=$(cat <<'EOF'
+          ${{ github.event.pull_request.body }}
+          EOF
+          )
+          echo "$TITLE\n$BODY" | grep -oE 'RFC[- ]([0-9]{4})' | grep -oE '[0-9]{4}' | sort -u > rfc_ids.txt || true
+          echo "ids=$(paste -sd, rfc_ids.txt)" >> $GITHUB_OUTPUT
+      - name: Mark Implementing and label linked issue
+        if: steps.ids.outputs.ids != ''
+        run: |
+          pipx install ruamel.yaml
+          python - << 'PY'
+          from pathlib import Path
+          from ruamel.yaml import YAML
+          import re
+          ids = [s for s in '${{ steps.ids.outputs.ids }}'.split(',') if s]
+          yaml = YAML()
+          idx = Path('docs/RFC/index.yaml')
+          data = yaml.load(idx.read_text(encoding='utf-8'))
+          changed = False
+          for rid in ids:
+            meta = data['rfcs'].get(rid)
+            if meta and meta.get('state') in ('Approved','Draft'):
+              meta['state'] = 'Implementing'
+              changed = True
+            # also update front-matter state in the RFC markdown file(s)
+            for f in Path('docs/RFC').glob(f'{rid}-*.md'):
+              txt = f.read_text(encoding='utf-8')
+              txt2 = re.sub(r'(state:\s*)(Draft|Approved|Review|Rejected)', r'\1Implementing', txt, count=1)
+              if txt2 != txt:
+                f.write_text(txt2, encoding='utf-8')
+          if changed:
+            idx.write_text(yaml.dump(data), encoding='utf-8')
+          PY
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add docs/RFC/index.yaml docs/RFC/*.md
+          git commit -m "chore(rfc): mark RFC(s) ${{ steps.ids.outputs.ids }} Implementing" || echo "No changes"
+          git push || true
+      - name: Label related task issue as in-progress
+        if: steps.ids.outputs.ids != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner; const repo = context.repo.repo;
+            const ids = '${{ steps.ids.outputs.ids }}'.split(',').filter(Boolean);
+            for (const id of ids) {
+              const q = `repo:${owner}/${repo} is:issue state:open RFC-${id} in:title`;
+              const res = await github.rest.search.issuesAndPullRequests({ q });
+              if (res.data.total_count === 0) continue;
+              const issue = res.data.items[0];
+              await github.rest.issues.addLabels({ owner, repo, issue_number: issue.number, labels: ['in-progress'] }).catch(()=>{});
+              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `Tracking PR #${context.payload.pull_request.number}` }).catch(()=>{});
+            }

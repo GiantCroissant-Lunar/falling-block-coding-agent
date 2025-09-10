@@ -1,0 +1,88 @@
+name: Plan RFCs
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '*/30 * * * *'
+  push:
+    paths:
+      - 'docs/RFC/index.yaml'
+      - 'docs/RFC/*.md'
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: Exit if not a coordinator issue
+        if: github.event_name == 'issues' && (github.event.issue == null || !contains(github.event.issue.labels.*.name, 'coordinator'))
+        run: echo "Not a coordinator-labeled issue; skipping." && exit 0
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Compute ready RFCs
+        id: compute
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          import yaml
+          p = Path('docs/RFC/index.yaml')
+          data = yaml.safe_load(p.read_text(encoding='utf-8')) or {}
+          rfcs = data.get('rfcs', {})
+          def state(x):
+            r = rfcs.get(str(x).zfill(4)) or {}
+            return r.get('state','Draft')
+          ready = []
+          for rid, meta in rfcs.items():
+            if meta.get('state') != 'Approved':
+              continue
+            reqs = meta.get('requires') or []
+            if all(state(r) in ('Approved','Done') for r in reqs):
+              ready.append({'id': rid, 'title': meta.get('title', '')})
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as f:
+            f.write('ready=' + json.dumps(ready) + '\n')
+          PY
+      - name: Open issues for ready RFCs
+        if: steps.compute.outputs.ready != '[]'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ready = JSON.parse(core.getInput('ready', { required: false }) || process.env.READY || '[]');
+            const owner = context.repo.owner; const repo = context.repo.repo;
+            for (const r of ready) {
+              // Skip if an open issue already exists for this RFC
+              const qIssue = `repo:${owner}/${repo} is:issue state:open RFC-${r.id} in:title`;
+              const foundIssue = await github.rest.search.issuesAndPullRequests({ q: qIssue });
+              if (foundIssue.data.total_count > 0) continue;
+              // Skip if an open PR references this RFC in title
+              const qPr = `repo:${owner}/${repo} is:pr state:open RFC-${r.id} in:title`;
+              const foundPr = await github.rest.search.issuesAndPullRequests({ q: qPr });
+              if (foundPr.data.total_count > 0) continue;
+              const rfcPath = `docs/RFC/${r.id}-`.toString();
+              const title = `[RFC-${r.id}] Implement ${r.title}`;
+              const body = [
+                `## RFC`,
+                `- ID and link: ${r.id} — docs/RFC/${r.id}-*.md`,
+                `- State: Approved`,
+                `\n## Acceptance Criteria`,
+                `(See RFC front-matter 'acceptance')`,
+                `\n## Files to Touch`,
+                `- As per RFC DoD and AGENTS.md`,
+                `\n## Checkpoints`,
+                `- Pause after 3–5 file edits; summarize deltas`,
+                `\n## Definition of Done`,
+                `- Build+tests green; docs updated; RFC acceptance met`,
+                `\n---`,
+                `Coordinator, implement RFC ${r.id} per AGENTS.md. Create a branch and PR. Stop when quality gates pass.`
+              ].join('\n');
+              await github.rest.issues.create({ owner, repo, title, body, labels: ['agent:task','rfc','ready'] });
+            }
+        env:
+          READY: ${{ steps.compute.outputs.ready }}

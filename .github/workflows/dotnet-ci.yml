@@ -1,0 +1,41 @@
+name: .NET
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      has_sln: ${{ steps.find.outputs.has_sln }}
+      sln: ${{ steps.find.outputs.sln }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        run: |
+          SLN=$(git ls-files "**/*.sln" | head -n 1)
+          if [ -n "$SLN" ]; then echo "has_sln=true" >> $GITHUB_OUTPUT; echo "sln=$SLN" >> $GITHUB_OUTPUT; else echo "has_sln=false" >> $GITHUB_OUTPUT; fi
+
+  build_and_test:
+    needs: detect
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Build
+        if: needs.detect.outputs.has_sln == 'true'
+        run: |
+          dotnet restore "${{ needs.detect.outputs.sln }}"
+          dotnet build "${{ needs.detect.outputs.sln }}" -c Release --no-restore
+      - name: Test
+        if: needs.detect.outputs.has_sln == 'true'
+        run: |
+          dotnet test "${{ needs.detect.outputs.sln }}" -c Release --no-build --logger trx
+      - name: No-op (no solution found)
+        if: needs.detect.outputs.has_sln != 'true'
+        run: echo "No .sln found yet; skipping build/test."

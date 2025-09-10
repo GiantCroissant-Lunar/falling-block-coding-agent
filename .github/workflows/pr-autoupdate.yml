@@ -1,0 +1,26 @@
+name: PR Auto Update
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: List open PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner; const repo = context.repo.repo;
+            const prs = await github.paginate(github.rest.pulls.list, { owner, repo, state: 'open' });
+            for (const pr of prs) {
+              const hasLabel = pr.labels?.some(l => l.name === 'auto-update');
+              if (!hasLabel) continue; // only auto-update when explicitly labeled
+              await github.rest.pulls.updateBranch({ owner, repo, pull_number: pr.number }).catch(()=>{});
+            }

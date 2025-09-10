@@ -1,0 +1,61 @@
+name: RFC Auto State
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  mark-done:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+  issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract RFC IDs
+        id: ids
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          BODY=$(cat <<'EOF'
+          ${{ github.event.pull_request.body }}
+          EOF
+          )
+          echo "$TITLE\n$BODY" | grep -oE 'RFC[- ]([0-9]{4})' | grep -oE '[0-9]{4}' | sort -u > rfc_ids.txt || true
+          echo "ids=$(paste -sd, rfc_ids.txt)" >> $GITHUB_OUTPUT
+      - name: Mark RFCs Done
+        if: steps.ids.outputs.ids != ''
+        run: |
+          pipx install ruamel.yaml
+          python - << 'PY'
+          from pathlib import Path
+          import re
+          from ruamel.yaml import YAML
+          ids = [s for s in '${{ steps.ids.outputs.ids }}'.split(',') if s]
+          yaml = YAML()
+          idx = Path('docs/RFC/index.yaml')
+          data = yaml.load(idx.read_text(encoding='utf-8'))
+          changed = False
+          for rid in ids:
+            meta = data['rfcs'].get(rid)
+            if meta and meta.get('state') != 'Done':
+              meta['state'] = 'Done'
+              changed = True
+            # update front-matter state in the RFC file
+            rfcs = list(Path('docs/RFC').glob(f'{rid}-*.md'))
+            for f in rfcs:
+              t = f.read_text(encoding='utf-8')
+              t = re.sub(r'(state:\s*)(Draft|Approved|Implementing|Review|Rejected)', r'\1Done', t, count=1)
+              f.write_text(t, encoding='utf-8')
+          if changed:
+            idx.write_text(yaml.dump(data), encoding='utf-8')
+          PY
+      - name: Commit changes
+        if: steps.ids.outputs.ids != ''
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add docs/RFC/index.yaml docs/RFC/*.md
+          git commit -m "chore(rfc): mark RFC(s) ${{ steps.ids.outputs.ids }} as Done" || echo "No changes"
+          git push
