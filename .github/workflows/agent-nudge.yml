@@ -66,11 +66,21 @@ jobs:
                 if (idleMins < IDLE_MINS && context.eventName !== 'pull_request') continue;
               }
 
+              // Auto-mark draft PRs as ready when clean
+              if (pr.draft && /clean/i.test(String(mergeableState||''))) {
+                try {
+                  await github.rest.pulls.update({ owner, repo, pull_number: pr.number, draft: false });
+                  await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body: '<!-- nudge:copilot -->\n🚀 Automatically marked as ready for review - PR is clean and passes checks!' });
+                  continue; // Skip normal nudge since we took action
+                } catch (e) {
+                  core.info(`Failed to mark PR #${pr.number} ready: ${e.message}`);
+                }
+              }
+
               const lines = [
                 '<!-- nudge:copilot -->',
-                'Copilot, please continue this RFC PR in small batches per .github/copilot-instructions.md:',
+                '@copilot-swe-agent Please continue this RFC PR in small batches per .github/copilot-instructions.md:',
                 '- Keep changes within RFC scope; 3–5 files, < ~300 LOC.',
-                '- If draft is ready and CI is green, mark Ready for review.',
                 '- If blocked, reply here with the blocker and a proposed small next step.'
               ];
               if (/dirty|behind/i.test(String(mergeableState||''))) {
