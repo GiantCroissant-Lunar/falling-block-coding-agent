@@ -1,7 +1,8 @@
-name: Require tests for code changes (disabled)
+name: Require tests for code changes (warn-only)
 
 on:
-  # Disabled from automatic PR checks; keep manual trigger only
+  pull_request_target:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
   workflow_dispatch: {}
 
 permissions:
@@ -10,6 +11,8 @@ permissions:
 
 jobs:
   check-tests:
+    # Only run for non-draft PRs (Ready for review)
+    if: ${{ github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Verify tests present for code changes
@@ -22,11 +25,16 @@ jobs:
             const overrideLabel = 'tests-exempt';
 
             // Current labels on the PR
-            const labels = (pr.labels || []).map(l => l.name);
+            const labels = (pr?.labels || []).map(l => l.name);
             const hasOverride = labels.includes(overrideLabel);
 
             // Changed files in PR
-            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: pr.number, per_page: 100 });
+            const pull_number = pr?.number || context.payload.inputs?.pull_number;
+            if (!pull_number) {
+              core.info('No pull_number found (manual run without PR context). Skipping.');
+              return;
+            }
+            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number, per_page: 100 });
 
             const isCodeFile = (p) => {
               if (!p.startsWith('dotnet/')) return false;
@@ -42,12 +50,11 @@ jobs:
 
             if (hasCodeChanges && !hasTestChanges && !hasOverride) {
               const body = [
-                'This PR changes code under dotnet/** but has no changes under dotnet/tests/**.',
-                'Please add or update tests to cover the changes.',
-                `If this PR is legitimately test-exempt (e.g., refactor, infra, or non-behavioral change), add the '${overrideLabel}' label with a short justification in the PR description.`
+                'Heads-up: This PR changes code under dotnet/** but shows no changes under dotnet/tests/**.',
+                'Consider adding or updating tests to cover the changes.',
+                `If tests are not applicable, you can apply the '${overrideLabel}' label and include a short justification in the PR description (see template).`
               ].join('\n');
-              await github.rest.issues.createComment({ owner, repo, issue_number: pr.number, body }).catch(()=>{});
-              core.setFailed('Code changes detected without corresponding test changes. Add tests or label as tests-exempt with justification.');
+              await github.rest.issues.createComment({ owner, repo, issue_number: pull_number, body }).catch(()=>{});
             } else {
-              core.info('Tests requirement satisfied or override present.');
+              core.info('Tests guidance satisfied or override present.');
             }
