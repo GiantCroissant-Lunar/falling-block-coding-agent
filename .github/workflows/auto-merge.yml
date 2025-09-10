@@ -1,12 +1,14 @@
 name: Auto Merge
 
 on:
-  check_suite:
-    types: [completed]
-  workflow_run:
-    workflows: [".NET", "Plan RFCs", "RFC Auto State", "RFC On PR Open", "RFC Monitor"]
-    types: [completed]
+  schedule:
+    # Every 30 minutes
+    - cron: '*/30 * * * *'
   workflow_dispatch: {}
+
+concurrency:
+  group: auto-merge-schedule
+  cancel-in-progress: true
 
 jobs:
   merge:
