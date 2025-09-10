@@ -2,7 +2,13 @@ name: RFC On PR Open
 
 on:
   pull_request:
-  types: [opened, reopened, ready_for_review, synchronize]
+    types: [opened, reopened, ready_for_review, synchronize]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to process (for manual run)"
+        required: false
+        type: number
 
 jobs:
   start:
@@ -20,14 +26,28 @@ jobs:
           cache: 'pip'
       - name: Extract RFC IDs
         id: ids
-        run: |
-          TITLE="${{ github.event.pull_request.title }}"
-          BODY=$(cat <<'EOF'
-          ${{ github.event.pull_request.body }}
-          EOF
-          )
-          echo "$TITLE\n$BODY" | grep -oE 'RFC[- ]([0-9]{4})' | grep -oE '[0-9]{4}' | sort -u > rfc_ids.txt || true
-          echo "ids=$(paste -sd, rfc_ids.txt)" >> $GITHUB_OUTPUT
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const owner = context.repo.owner; const repo = context.repo.repo;
+            let title = '', body = '';
+            if (context.eventName === 'pull_request') {
+              title = context.payload.pull_request?.title || '';
+              body = context.payload.pull_request?.body || '';
+            } else if (context.eventName === 'workflow_dispatch') {
+              const prn = context.payload?.inputs?.pr_number ? Number(context.payload.inputs.pr_number) : NaN;
+              if (!isNaN(prn)) {
+                const pr = await github.rest.pulls.get({ owner, repo, pull_number: prn });
+                title = pr.data.title || '';
+                body = pr.data.body || '';
+                core.exportVariable('MANUAL_PR_NUMBER', String(prn));
+              }
+            }
+            const text = `${title}\n${body}`;
+            const matches = Array.from(text.matchAll(/RFC[- ](\d{4})/gi)).map(m => m[1]);
+            const ids = Array.from(new Set(matches)).join(',');
+            core.setOutput('ids', ids);
       - name: Mark Implementing and label linked issue
         if: steps.ids.outputs.ids != ''
         run: |
@@ -71,11 +91,14 @@ jobs:
           script: |
             const owner = context.repo.owner; const repo = context.repo.repo;
             const ids = '${{ steps.ids.outputs.ids }}'.split(',').filter(Boolean);
+            const prNumber = process.env.MANUAL_PR_NUMBER ? Number(process.env.MANUAL_PR_NUMBER) : (context.payload.pull_request?.number);
             for (const id of ids) {
               const q = `repo:${owner}/${repo} is:issue state:open RFC-${id} in:title`;
               const res = await github.rest.search.issuesAndPullRequests({ q });
               if (res.data.total_count === 0) continue;
               const issue = res.data.items[0];
               await github.rest.issues.addLabels({ owner, repo, issue_number: issue.number, labels: ['in-progress'] }).catch(()=>{});
-              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `Tracking PR #${context.payload.pull_request.number}` }).catch(()=>{});
+              if (prNumber) {
+                await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: `Tracking PR #${prNumber}` }).catch(()=>{});
+              }
             }
