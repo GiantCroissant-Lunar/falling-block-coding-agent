@@ -1,4 +1,47 @@
-# Copilot coding agent instructions
+# Copilot Coding Agent Instructions
+
+These instructions guide Copilot to deliver small, mergeable PRs quickly.
+
+## Scope and batching
+- Work only on the RFC in the PR title/description.
+- Keep each batch to 3–5 files and ~300 LOC. Stop after each batch and post a short checkpoint summary.
+- If a PR grows too large, split it into follow-up PRs.
+
+## Branching and commits
+- Stay on the existing PR branch (e.g., `copilot/fix-*`). Do not create extra branches unless splitting intentionally.
+- Use clear commit messages. Reference the RFC ID when relevant.
+
+## Build, test, and quality gates
+- Run `dotnet restore`, `dotnet build`, and `dotnet test` locally before pushing.
+- Add/update tests when changing code under `dotnet/**`. If tests aren’t applicable, add the `tests-exempt` label and explain in the PR description.
+
+## Keep the branch up to date (rebase/update)
+1) Fetch latest base: `git fetch origin`
+2) Rebase: `git rebase origin/main`
+3) Resolve conflicts. Re-run build/tests.
+4) Push with lease: `git push --force-with-lease`
+
+If `updateBranch` is available via API, you may use it, but prefer a clean rebase that keeps history simple.
+
+## Push using a tokenized remote (required)
+If push fails with “Password authentication not supported”, set the remote to use the GitHub token and include `.git`:
+
+```
+git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/GiantCroissant-Lunar/falling-block-coding-agent.git"
+```
+
+Then push normally (or with `--force-with-lease` after a rebase).
+
+## PR readiness
+- Keep PR as Draft while iterating. Once CI is green and the batch is cohesive, mark Ready for review.
+- If blocked, comment exactly what’s missing and propose the next tiny step.
+
+## Repository specifics
+- .NET SDK is pinned via `global.json`. Use the pinned SDK.
+- Packages are managed via CPVM in `Directory.Packages.props`.
+- Tests use xUnit + FluentAssertions.
+
+Thank you! Proceed in small, verifiable steps, keep the branch rebased, and ensure pushes use the tokenized remote.# Copilot coding agent instructions
 
 This repository is RFC-driven. When working on issues/PRs, follow these rules:
 
