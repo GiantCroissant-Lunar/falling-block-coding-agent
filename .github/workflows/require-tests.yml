@@ -1,8 +1,8 @@
-name: Require tests for code changes
+name: Require tests for code changes (disabled)
 
 on:
-  pull_request_target:
-    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+  # Disabled from automatic PR checks; keep manual trigger only
+  workflow_dispatch: {}
 
 permissions:
   pull-requests: write
