@@ -1,0 +1,70 @@
+name: Fast Merge
+
+on:
+  check_suite:
+    types: [completed]
+  workflow_run:
+    workflows: [".NET", "Plan RFCs", "RFC Auto State", "RFC On PR Open", "RFC Monitor"]
+    types: [completed]
+  schedule:
+    - cron: '*/2 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  fast-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto ready and merge small green PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner; const repo = context.repo.repo;
+            const prs = await github.paginate(github.rest.pulls.list, { owner, repo, state: 'open', per_page: 100 });
+            for (const pr of prs) {
+              // Gate: small PRs only, skip huge diffs
+              if ((pr.additions || 0) > 1200 || (pr.changed_files || 0) > 50) continue;
+
+              // Gate: Either explicitly labeled for auto-merge, or appears to be Copilot branch/author
+              const hasAutoMerge = pr.labels?.some(l => l.name === 'auto-merge');
+              const isCopilotAuth = /copilot/i.test(pr.user?.login || '');
+              const isCopilotBranch = /copilot\//i.test(pr.head?.ref || '');
+              if (!(hasAutoMerge || isCopilotAuth || isCopilotBranch)) continue;
+
+              // Check mergeability
+              let mergeableState = null;
+              try {
+                const { data: full } = await github.rest.pulls.get({ owner, repo, pull_number: pr.number });
+                mergeableState = full.mergeable_state; // clean, dirty, behind, unstable, etc.
+              } catch {}
+
+              if (/dirty/i.test(String(mergeableState))) {
+                // Needs manual conflict resolution
+                try { await github.rest.issues.addLabels({ owner, repo, issue_number: pr.number, labels: ['needs-rebase'] }); } catch {}
+                continue;
+              }
+              if (/behind/i.test(String(mergeableState))) {
+                // Attempt to update branch automatically
+                try { await github.rest.pulls.updateBranch({ owner, repo, pull_number: pr.number }); } catch {}
+                continue;
+              }
+
+              // Ensure checks are green
+              const { data: combined } = await github.rest.repos.getCombinedStatusForRef({ owner, repo, ref: pr.head.sha });
+              if (combined.state !== 'success') continue;
+
+              // If draft, mark Ready for review
+              if (pr.draft) {
+                try { await github.rest.pulls.readyForReview({ owner, repo, pull_number: pr.number }); } catch {}
+              }
+
+              // Merge using squash
+              try {
+                await github.rest.pulls.merge({ owner, repo, pull_number: pr.number, merge_method: 'squash' });
+              } catch (e) {
+                core.info(`Merge failed for PR #${pr.number}: ${e.message}`);
+              }
+            }
